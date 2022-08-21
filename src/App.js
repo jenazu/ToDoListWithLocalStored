@@ -2,17 +2,24 @@ import "./App.css";
 import { useEffect, useRef, useState } from "react";
 import Table from "./components/Table/Table";
 import { getLocalStored, setLocalStored } from "./components/localStored";
+import { useNavigate } from "react-router-dom";
 
 function App() {
+  // lấy user từ localstored sau nó chọc vào BIẾN email trong đó và lấy chính BIẾN đó làm key để thêm các jobs vào localstored
+  const user = getLocalStored("user");
+  const key = user?.email;
+  ///////////////
   const [job, setJob] = useState({ content: "", dateline: "" });
-  const [jobs, setJobs] = useState(getLocalStored("todo") || []);
+  const [jobs, setJobs] = useState(getLocalStored(key) || []);
   const ref = useRef(null);
   const ref2 = useRef(null);
-
+  const navigate = useNavigate();
+  /// change job in useState
   const onSubmit = (e) => {
     setJob({ ...job, [e.target.name]: e.target.value });
   };
-
+  ///////////
+  ////// push job to useState jobs
   const handleJobs = () => {
     if (job.content === "") {
       return;
@@ -26,21 +33,40 @@ function App() {
     ref.current.value = "";
     ref2.current.value = "";
   };
-  console.log(job);
+  //////////
   // set jobs in local stored
   useEffect(() => {
-    setLocalStored("todo", jobs);
+    setLocalStored(key, jobs);
     ref.current.focus();
   }, [jobs]);
-
+  /////////////
+  // delete job in useSate jobs
   const handleDelete = (index) => {
     let deleteJobs = jobs;
     deleteJobs.splice(index, 1);
     setJobs(deleteJobs.concat());
   };
+  ////////
+  // logic logout and check
+
+  useEffect(() => {
+    if (!user) {
+      navigate("/");
+    }
+  }, []);
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    navigate("/");
+  };
+  /////////////
   return (
     <div className="App">
-      <h1>TODOLISH</h1>
+      <h1>TODOLISH for {user ? user?.email : null} </h1>
+
+      <button style={{ marginBottom: 30 }} onClick={handleLogout}>
+        logout
+      </button>
+      <br />
       <input
         name="content"
         type="text"
